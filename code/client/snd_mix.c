@@ -710,13 +710,13 @@ void S_PaintChannels( int endtime ) {
 
 		// clear the paint buffer and mix any raw samples...
 		Com_Memset( paintbuffer, 0, sizeof( paintbuffer ) );
-		if ( s_rawend - s_paintedtime >= 0 ) {
+		if ( s_rawend[0] - s_paintedtime >= 0 ) {
 			// copy from the streaming sound source
-			const int stop = (end < s_rawend) ? end : s_rawend;
+			const int stop = (end < s_rawend[0]) ? end : s_rawend[0];
 			for ( i = s_paintedtime; i < stop; i++ ) {
 				const int s = i&(MAX_RAW_SAMPLES-1);
-				paintbuffer[i-s_paintedtime].left += s_rawsamples[s].left;
-				paintbuffer[i-s_paintedtime].right += s_rawsamples[s].right;
+				paintbuffer[i-s_paintedtime].left += s_rawsamples[0][s].left;
+				paintbuffer[i-s_paintedtime].right += s_rawsamples[0][s].right;
 			}
 		}
 

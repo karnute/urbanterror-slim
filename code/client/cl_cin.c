@@ -51,7 +51,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ZA_SOUND_STEREO		0x1021
 
 extern	int		s_paintedtime;
-extern	int		s_rawend;
+
 
 
 static void RoQ_init( void );
@@ -1174,7 +1174,7 @@ redump:
 			if (!cinTable[currentHandle].silent) {
 				if (cinTable[currentHandle].numQuads == -1) {
 					S_Update( 333 );
-					s_rawend = s_soundtime;
+					s_rawend[0] = s_soundtime;
 				}
 				ssize = RllDecodeStereoToStereo( framedata, sbuf, cinTable[currentHandle].RoQFrameSize, 0, (unsigned short)cinTable[currentHandle].roq_flags);
 					S_RawSamples( ssize, 22050, 2, 2, (byte *)sbuf, s_volume->value );
@@ -1504,7 +1504,7 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 		Con_Close();
 
 		if ( !cinTable[currentHandle].silent ) {
-			s_rawend = s_soundtime;
+			s_rawend[0] = s_soundtime;
 		}
 
 		return currentHandle;

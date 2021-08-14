@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "snd_public.h"
 
 cvar_t *s_volume;
+cvar_t *s_muted;
 cvar_t *s_musicVolume;
 cvar_t *s_doppler;
 cvar_t *s_muteWhenMinimized;
@@ -412,6 +413,7 @@ void S_Init( void )
 
 	s_volume = Cvar_Get( "s_volume", "0.8", CVAR_ARCHIVE );
 	s_musicVolume = Cvar_Get( "s_musicvolume", "0.25", CVAR_ARCHIVE );
+	s_muted = Cvar_Get("s_muted", "0", CVAR_ROM);
 	s_doppler = Cvar_Get( "s_doppler", "1", CVAR_ARCHIVE_ND );
 	s_muteWhenUnfocused = Cvar_Get( "s_muteWhenUnfocused", "1", CVAR_ARCHIVE );
 	s_muteWhenMinimized = Cvar_Get( "s_muteWhenMinimized", "1", CVAR_ARCHIVE );
@@ -435,6 +437,13 @@ void S_Init( void )
 		Cmd_AddCommand( "s_list", S_SoundList );
 		Cmd_AddCommand( "s_stop", S_StopAllSounds );
 		Cmd_AddCommand( "s_info", S_SoundInfo );
+
+		cv = Cvar_Get( "s_useOpenAL", "1", CVAR_ARCHIVE | CVAR_LATCH );
+		if( cv->integer ) {
+			//OpenAL
+			started = S_AL_Init( &si );
+			Cvar_Set( "s_backend", "OpenAL" );
+		}
 
 		if ( !started ) {
 			started = S_Base_Init( &si );

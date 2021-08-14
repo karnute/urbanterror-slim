@@ -422,9 +422,22 @@ qboolean CL_OpenAVIForWriting( const char *fileName, qboolean pipe )
   {
     afd.audio = qfalse;
   }
+  else if( Q_stricmp( Cvar_VariableString( "s_backend" ), "OpenAL" ) )
+  {
+    if( afd.a.bits != 16 || afd.a.channels != 2 )
+    {
+      Com_Printf( S_COLOR_YELLOW "WARNING: Audio format of %d bit/%d channels not supported",
+          afd.a.bits, afd.a.channels );
+      afd.audio = qfalse;
+    }
+    else
+      afd.audio = qtrue;
+  }
   else
   {
-    afd.audio = qtrue;
+    afd.audio = qfalse;
+    Com_Printf( S_COLOR_YELLOW "WARNING: Audio capture is not supported "
+        "with OpenAL. Set s_useOpenAL to 0 for audio capture\n" );
   }
 
   // This doesn't write a real header, but allocates the

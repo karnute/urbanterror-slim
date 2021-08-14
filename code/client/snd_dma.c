@@ -97,8 +97,8 @@ cvar_t		*s_device;
 loopSound_t	loopSounds[MAX_GENTITIES];
 static	channel_t	*freelist = NULL;
 
-int			s_rawend;
-portable_samplepair_t	s_rawsamples[MAX_RAW_SAMPLES];
+int		s_rawend[MAX_RAW_STREAMS];
+portable_samplepair_t	s_rawsamples[MAX_RAW_STREAMS][MAX_RAW_SAMPLES];
 
 
 // ====================================================================
@@ -639,7 +639,7 @@ static void S_Base_ClearSoundBuffer( void ) {
 
 	S_ChannelSetup();
 
-	s_rawend = 0;
+	s_rawend[0] = 0;
 
 	if (dma.samplebits == 8)
 		clear = 0x80;
@@ -890,7 +890,7 @@ void S_AddLoopSounds( void ) {
 
 portable_samplepair_t *S_GetRawSamplePointer( void ) 
 {
-	return s_rawsamples;
+	return s_rawsamples[0];
 }
 
 
@@ -913,24 +913,24 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 
 	intVolume = 256 * volume;
 
-	if ( s_rawend - s_soundtime < 0 ) {
-		Com_DPrintf( "S_RawSamples: resetting minimum: %i < %i\n", s_rawend, s_soundtime );
-		s_rawend = s_soundtime;
+	if ( s_rawend[0] - s_soundtime < 0 ) {
+		Com_DPrintf( "S_RawSamples: resetting minimum: %i < %i\n", s_rawend[0], s_soundtime );
+		s_rawend[0] = s_soundtime;
 	}
 
 	scale = (float)rate / dma.speed;
 
-	//Com_Printf ("%i < %i < %i\n", s_soundtime, s_paintedtime, s_rawend);
+	//Com_Printf ("%i < %i < %i\n", s_soundtime, s_paintedtime, s_rawend[0]);
 	if (n_channels == 2 && width == 2)
 	{
 		if (scale == 1.0)
 		{	// optimized case
 			for (i=0 ; i<samples ; i++)
 			{
-				dst = s_rawend&(MAX_RAW_SAMPLES-1);
-				s_rawend++;
-				s_rawsamples[dst].left = ((short *)data)[i*2] * intVolume;
-				s_rawsamples[dst].right = ((short *)data)[i*2+1] * intVolume;
+				dst = s_rawend[0]&(MAX_RAW_SAMPLES-1);
+				s_rawend[0]++;
+				s_rawsamples[0][dst].left = ((short *)data)[i*2] * intVolume;
+				s_rawsamples[0][dst].right = ((short *)data)[i*2+1] * intVolume;
 			}
 		}
 		else
@@ -940,10 +940,10 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 				src = i*scale;
 				if (src >= samples)
 					break;
-				dst = s_rawend&(MAX_RAW_SAMPLES-1);
-				s_rawend++;
-				s_rawsamples[dst].left = ((short *)data)[src*2] * intVolume;
-				s_rawsamples[dst].right = ((short *)data)[src*2+1] * intVolume;
+				dst = s_rawend[0]&(MAX_RAW_SAMPLES-1);
+				s_rawend[0]++;
+				s_rawsamples[0][dst].left = ((short *)data)[src*2] * intVolume;
+				s_rawsamples[0][dst].right = ((short *)data)[src*2+1] * intVolume;
 			}
 		}
 	}
@@ -954,10 +954,10 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 			src = i*scale;
 			if (src >= samples)
 				break;
-			dst = s_rawend&(MAX_RAW_SAMPLES-1);
-			s_rawend++;
-			s_rawsamples[dst].left = ((short *)data)[src] * intVolume;
-			s_rawsamples[dst].right = ((short *)data)[src] * intVolume;
+			dst = s_rawend[0]&(MAX_RAW_SAMPLES-1);
+			s_rawend[0]++;
+			s_rawsamples[0][dst].left = ((short *)data)[src] * intVolume;
+			s_rawsamples[0][dst].right = ((short *)data)[src] * intVolume;
 		}
 	}
 	else if (n_channels == 2 && width == 1)
@@ -969,10 +969,10 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 			src = i*scale;
 			if (src >= samples)
 				break;
-			dst = s_rawend&(MAX_RAW_SAMPLES-1);
-			s_rawend++;
-			s_rawsamples[dst].left = ((char *)data)[src*2] * intVolume;
-			s_rawsamples[dst].right = ((char *)data)[src*2+1] * intVolume;
+			dst = s_rawend[0]&(MAX_RAW_SAMPLES-1);
+			s_rawend[0]++;
+			s_rawsamples[0][dst].left = ((char *)data)[src*2] * intVolume;
+			s_rawsamples[0][dst].right = ((char *)data)[src*2+1] * intVolume;
 		}
 	}
 	else if (n_channels == 1 && width == 1)
@@ -984,15 +984,15 @@ static void S_Base_RawSamples( int samples, int rate, int width, int n_channels,
 			src = i*scale;
 			if (src >= samples)
 				break;
-			dst = s_rawend&(MAX_RAW_SAMPLES-1);
-			s_rawend++;
-			s_rawsamples[dst].left = (((byte *)data)[src]-128) * intVolume;
-			s_rawsamples[dst].right = (((byte *)data)[src]-128) * intVolume;
+			dst = s_rawend[0]&(MAX_RAW_SAMPLES-1);
+			s_rawend[0]++;
+			s_rawsamples[0][dst].left = (((byte *)data)[src]-128) * intVolume;
+			s_rawsamples[0][dst].right = (((byte *)data)[src]-128) * intVolume;
 		}
 	}
 
-	if ( s_rawend - s_soundtime > MAX_RAW_SAMPLES ) {
-		Com_DPrintf( "S_RawSamples: overflowed %i > %i\n", s_rawend, s_soundtime );
+	if ( s_rawend[0] - s_soundtime > MAX_RAW_SAMPLES ) {
+		Com_DPrintf( "S_RawSamples: overflowed %i > %i\n", s_rawend[0], s_soundtime );
 	}
 }
 
@@ -1270,7 +1270,7 @@ static void S_Base_StopBackgroundTrack( void ) {
 		return;
 	S_CodecCloseStream(s_backgroundStream);
 	s_backgroundStream = NULL;
-	s_rawend = 0;
+	s_rawend[0] = 0;
 }
 
 
@@ -1349,12 +1349,12 @@ void S_UpdateBackgroundTrack( void ) {
 	}
 
 	// see how many samples should be copied into the raw buffer
-	if ( s_rawend - s_soundtime < 0 ) {
-		s_rawend = s_soundtime;
+	if ( s_rawend[0] - s_soundtime < 0 ) {
+		s_rawend[0] = s_soundtime;
 	}
 
-	while ( s_rawend - s_soundtime < MAX_RAW_SAMPLES ) {
-		bufferSamples = MAX_RAW_SAMPLES - (s_rawend - s_soundtime);
+	while ( s_rawend[0] - s_soundtime < MAX_RAW_SAMPLES ) {
+		bufferSamples = MAX_RAW_SAMPLES - (s_rawend[0] - s_soundtime);
 
 		// decide how much data needs to be read from the file
 		fileSamples = bufferSamples * s_backgroundStream->info.rate / dma.speed;
