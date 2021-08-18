@@ -135,7 +135,7 @@ GENERATE_DEPENDENCIES=1
 endif
 
 ifndef USE_OPENAL
-USE_OPENAL=1
+USE_OPENAL=0
 endif
 
 ifndef USE_OPENAL_DLOPEN
@@ -535,8 +535,10 @@ else
   THREAD_LIBS=-lpthread
   
   ifeq ($(USE_OPENAL),1)
-    ifneq ($(USE_OPENAL_DLOPEN),1)
+    ifeq ($(USE_OPENAL_DLOPEN),1)
       CLIENT_LIBS += $(THREAD_LIBS) $(OPENAL_LIBS)
+    else
+      CLIENT_LDFLAGS += $(OPENAL_LIBS)
     endif
   endif
 
